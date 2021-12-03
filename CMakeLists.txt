@@ -1,49 +1,32 @@
-cmake_minimum_required(VERSION 2.8)
-
+cmake_minimum_required(VERSION 3.0)
 project(craft)
-
-FILE(GLOB SOURCE_FILES src/*.c)
-
-add_executable(
-    craft
-    ${SOURCE_FILES}
-    deps/glew/src/glew.c
-    deps/lodepng/lodepng.c
-    deps/noise/noise.c
-    deps/sqlite/sqlite3.c
-    deps/tinycthread/tinycthread.c)
-
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+#add_compile_options(-std=c++11)
 add_definitions(-std=c99 -O3)
+#glew static lib
+add_compile_options(-DGLEW_STATIC)
 
-add_subdirectory(deps/glfw)
-include_directories(deps/glew/include)
-include_directories(deps/glfw/include)
+#FILE(GLOB SOURCE_FILES src/*.c)
+
+aux_source_directory(src SOURCE)
+aux_source_directory(deps/lodepng SOURCE)
+aux_source_directory(deps/noise SOURCE)
+aux_source_directory(deps/sqlite SOURCE)
+aux_source_directory(deps/tinycthread SOURCE)
+
+include_directories(src)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
 include_directories(deps/sqlite)
 include_directories(deps/tinycthread)
 
-if(MINGW)
-    set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH}
-        "C:/Program Files/CURL/lib" "C:/Program Files (x86)/CURL/lib")
-    set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH}
-        "C:/Program Files/CURL/include" "C:/Program Files (x86)/CURL/include")
-endif()
+include_directories(deps/GLEW/include)
+include_directories(deps/GLFW/include)
+include_directories(deps/curl/include)
 
-find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIR})
+link_directories (${PROJECT_SOURCE_DIR}/deps/GLEW/lib/Release/Win32)
+link_directories (${PROJECT_SOURCE_DIR}/deps/GLFW/lib-vc2015)
+link_directories (${PROJECT_SOURCE_DIR}/deps/curl/lib)
 
-if(APPLE)
-    target_link_libraries(craft glfw
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
-endif()
-
-if(UNIX)
-    target_link_libraries(craft dl glfw
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
-endif()
-
-if(MINGW)
-    target_link_libraries(craft ws2_32.lib glfw
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
-endif()
+add_executable(${PROJECT_NAME} ${SOURCE})
+target_link_libraries(${PROJECT_NAME} PRIVATE Opengl32 ws2_32 glfw3 glew32s curl)
